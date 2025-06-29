@@ -68,7 +68,7 @@ shortuuid==1.0.11
 pytest==7.4.3
 pytest-asyncio==0.21.1
 pytest-cov==4.1.0
-httpx-mock==0.25.2
+# httpx-mock==0.25.2  # Временно отключено
 faker==20.1.0
 black==23.11.0
 isort==5.13.0
@@ -86,3 +86,4 @@ supervisor==4.2.5
 # ===== МИГРАЦИИ И ДЕПЛОЙ =====
 fabric==3.2.2
 invoke==2.2.0
+

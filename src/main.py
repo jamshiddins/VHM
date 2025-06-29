@@ -51,7 +51,7 @@ app = FastAPI(
 # Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.get_cors_origins(),
+    allow_origins=['*'] if settings.DEBUG else [],  # TODO: настроить CORS
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -136,3 +136,4 @@ if __name__ == "__main__":
         workers=settings.WORKERS if settings.is_production else 1,
         log_level=settings.LOG_LEVEL.lower()
     )
+
