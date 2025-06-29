@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # PostgreSQL база данных
+  postgres:
+    image: postgres:16-alpine
+    container_name: vendhub_postgres
+    environment:
+      POSTGRES_DB: vendhub
+      POSTGRES_USER: vendhub_user
+      POSTGRES_PASSWORD: vendhub_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vendhub_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis для кеширования и очередей
+  redis:
+    image: redis:7-alpine
+    container_name: vendhub_redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Adminer для управления БД (опционально)
+  adminer:
+    image: adminer:latest
+    container_name: vendhub_adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: pepa-linha-dark
+
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vendhub_backend
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./src:/app/src
+      - ./static:/app/static
+      - ./logs:/app/logs
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://vendhub_user:vendhub_password@postgres:5432/vendhub
+      - REDIS_URL=redis://redis:6379/0
+      - ENVIRONMENT=development
+      - DEBUG=True
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Telegram Bot (отдельный контейнер)
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
+    container_name: vendhub_bot
+    command: python -m src.bot.bot
+    volumes:
+      - ./src:/app/src
+      - ./logs:/app/logs
+    environment:
+      - DATABASE_URL=postgresql://vendhub_user:vendhub_password@postgres:5432/vendhub
+      - REDIS_URL=redis://redis:6379/0
+      - BOT_TOKEN=${BOT_TOKEN}
+      - USE_WEBHOOK=False
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+
+  # Nginx (для продакшена)
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: vendhub_nginx
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf
+  #     - ./static:/var/www/static
+  #   depends_on:
+  #     - backend
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: vendhub_network

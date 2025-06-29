@@ -1,0 +1,88 @@
+﻿# ===== CORE DEPENDENCIES =====
+# FastAPI и связанные
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-multipart==0.0.6
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-dotenv==1.0.0
+
+# ===== DATABASE =====
+# PostgreSQL и ORM
+sqlalchemy==2.0.23
+asyncpg==0.29.0
+alembic==1.12.1
+psycopg2-binary==2.9.9
+
+# ===== TELEGRAM BOT =====
+aiogram==3.2.0
+aiofiles==23.2.1
+
+# ===== REDIS =====
+redis==5.0.1
+aioredis==2.0.1
+
+# ===== EXCEL PROCESSING =====
+openpyxl==3.1.2
+pandas==2.1.3
+xlsxwriter==3.1.9
+
+# ===== DATA VALIDATION =====
+email-validator==2.1.0
+phonenumbers==8.13.25
+
+# ===== DATETIME & TIMEZONE =====
+pytz==2023.3
+python-dateutil==2.8.2
+
+# ===== HTTP CLIENT =====
+httpx==0.25.2
+aiohttp==3.9.1
+
+# ===== SECURITY =====
+cryptography==41.0.7
+argon2-cffi==23.1.0
+
+# ===== UTILITIES =====
+# Логирование
+loguru==0.7.2
+
+# Планировщик задач
+apscheduler==3.10.4
+
+# Работа с изображениями
+pillow==10.1.0
+
+# QR коды
+qrcode[pil]==7.4.2
+
+# Форматирование
+tabulate==0.9.0
+
+# Генерация уникальных ID
+shortuuid==1.0.11
+
+# ===== DEVELOPMENT & TESTING =====
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+httpx-mock==0.25.2
+faker==20.1.0
+black==23.11.0
+isort==5.13.0
+flake8==6.1.0
+mypy==1.7.1
+
+# ===== API DOCUMENTATION =====
+mkdocs==1.5.3
+mkdocs-material==9.4.14
+
+# ===== PRODUCTION SERVER =====
+gunicorn==21.2.0
+supervisor==4.2.5
+
+# ===== МИГРАЦИИ И ДЕПЛОЙ =====
+fabric==3.2.2
+invoke==2.2.0

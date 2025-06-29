@@ -1,0 +1,29 @@
+FROM python:3.11-slim
+
+# Установка системных зависимостей
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Создание пользователя
+RUN groupadd -r vendhub && useradd -r -g vendhub vendhub
+
+# Установка рабочей директории
+WORKDIR /app
+
+# Копирование и установка зависимостей
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Копирование кода
+COPY --chown=vendhub:vendhub . .
+
+# Создание директории для логов
+RUN mkdir -p /app/logs && chown -R vendhub:vendhub /app
+
+# Переключение на непривилегированного пользователя
+USER vendhub
+
+# Команда запуска бота
+CMD ["python", "-m", "src.bot.bot"]
