@@ -1,4 +1,4 @@
-from datetime import timedelta
+﻿from datetime import timedelta
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status, Form
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -23,15 +23,15 @@ async def register(
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    Регистрация нового пользователя.
+    Р РµРіРёСЃС‚СЂР°С†РёСЏ РЅРѕРІРѕРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ.
     
-    - **telegram_id**: ID пользователя в Telegram
-    - **phone**: Номер телефона (с +998)
-    - **email**: Email адрес
-    - **username**: Уникальное имя пользователя
-    - **full_name**: Полное имя
-    - **password**: Пароль (мин. 8 символов)
-    - **role_names**: Список ролей
+    - **telegram_id**: ID РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РІ Telegram
+    - **phone**: РќРѕРјРµСЂ С‚РµР»РµС„РѕРЅР° (СЃ +998)
+    - **email**: Email Р°РґСЂРµСЃ
+    - **username**: РЈРЅРёРєР°Р»СЊРЅРѕРµ РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+    - **full_name**: РџРѕР»РЅРѕРµ РёРјСЏ
+    - **password**: РџР°СЂРѕР»СЊ (РјРёРЅ. 8 СЃРёРјРІРѕР»РѕРІ)
+    - **role_names**: РЎРїРёСЃРѕРє СЂРѕР»РµР№
     """
     auth_service = AuthService(session)
     
@@ -51,12 +51,12 @@ async def login(
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    Вход в систему (OAuth2 совместимый).
+    Р’С…РѕРґ РІ СЃРёСЃС‚РµРјСѓ (OAuth2 СЃРѕРІРјРµСЃС‚РёРјС‹Р№).
     
-    Username может быть:
-    - Имя пользователя
+    Username РјРѕР¶РµС‚ Р±С‹С‚СЊ:
+    - РРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
     - Email
-    - Номер телефона
+    - РќРѕРјРµСЂ С‚РµР»РµС„РѕРЅР°
     """
     auth_service = AuthService(session)
     
@@ -69,7 +69,7 @@ async def login(
     except InvalidCredentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Неверные учетные данные",
+            detail="РќРµРІРµСЂРЅС‹Рµ СѓС‡РµС‚РЅС‹Рµ РґР°РЅРЅС‹Рµ",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -80,7 +80,7 @@ async def login_custom(
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    Вход в систему (кастомный endpoint).
+    Р’С…РѕРґ РІ СЃРёСЃС‚РµРјСѓ (РєР°СЃС‚РѕРјРЅС‹Р№ endpoint).
     """
     auth_service = AuthService(session)
     
@@ -93,7 +93,7 @@ async def login_custom(
     except InvalidCredentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Неверные учетные данные"
+            detail="РќРµРІРµСЂРЅС‹Рµ СѓС‡РµС‚РЅС‹Рµ РґР°РЅРЅС‹Рµ"
         )
 
 
@@ -103,7 +103,7 @@ async def telegram_auth(
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    Авторизация через Telegram.
+    РђРІС‚РѕСЂРёР·Р°С†РёСЏ С‡РµСЂРµР· Telegram.
     """
     auth_service = AuthService(session)
     
@@ -113,7 +113,7 @@ async def telegram_auth(
     except InvalidCredentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Неверные данные Telegram"
+            detail="РќРµРІРµСЂРЅС‹Рµ РґР°РЅРЅС‹Рµ Telegram"
         )
 
 
@@ -123,7 +123,7 @@ async def refresh_token(
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    Обновление токенов.
+    РћР±РЅРѕРІР»РµРЅРёРµ С‚РѕРєРµРЅРѕРІ.
     """
     auth_service = AuthService(session)
     
@@ -133,7 +133,7 @@ async def refresh_token(
     except InvalidCredentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Невалидный refresh token"
+            detail="РќРµРІР°Р»РёРґРЅС‹Р№ refresh token"
         )
 
 
@@ -142,7 +142,7 @@ async def get_me(
     current_user: User = Depends(get_current_active_user)
 ):
     """
-    Получить информацию о текущем пользователе.
+    РџРѕР»СѓС‡РёС‚СЊ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ С‚РµРєСѓС‰РµРј РїРѕР»СЊР·РѕРІР°С‚РµР»Рµ.
     """
     return current_user
 
@@ -153,12 +153,12 @@ async def logout(
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    Выход из системы.
+    Р’С‹С…РѕРґ РёР· СЃРёСЃС‚РµРјС‹.
     """
     auth_service = AuthService(session)
     await auth_service.logout_user(current_user.id)
     
-    return {"message": "Успешный выход"}
+    return {"message": "РЈСЃРїРµС€РЅС‹Р№ РІС‹С…РѕРґ"}
 
 
 @router.post("/verify-email")
@@ -167,17 +167,17 @@ async def verify_email(
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    Подтверждение email.
+    РџРѕРґС‚РІРµСЂР¶РґРµРЅРёРµ email.
     """
     auth_service = AuthService(session)
     
     try:
         await auth_service.verify_email(token)
-        return {"message": "Email успешно подтвержден"}
+        return {"message": "Email СѓСЃРїРµС€РЅРѕ РїРѕРґС‚РІРµСЂР¶РґРµРЅ"}
     except InvalidCredentials:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Неверный или истекший токен"
+            detail="РќРµРІРµСЂРЅС‹Р№ РёР»Рё РёСЃС‚РµРєС€РёР№ С‚РѕРєРµРЅ"
         )
 
 
@@ -187,16 +187,16 @@ async def reset_password_request(
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    Запрос на сброс пароля.
+    Р—Р°РїСЂРѕСЃ РЅР° СЃР±СЂРѕСЃ РїР°СЂРѕР»СЏ.
     """
     auth_service = AuthService(session)
     
     try:
         await auth_service.request_password_reset(email)
-        return {"message": "Инструкции отправлены на email"}
+        return {"message": "РРЅСЃС‚СЂСѓРєС†РёРё РѕС‚РїСЂР°РІР»РµРЅС‹ РЅР° email"}
     except UserNotFound:
-        # Не раскрываем информацию о существовании пользователя
-        return {"message": "Инструкции отправлены на email"}
+        # РќРµ СЂР°СЃРєСЂС‹РІР°РµРј РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ СЃСѓС‰РµСЃС‚РІРѕРІР°РЅРёРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+        return {"message": "РРЅСЃС‚СЂСѓРєС†РёРё РѕС‚РїСЂР°РІР»РµРЅС‹ РЅР° email"}
 
 
 @router.post("/reset-password")
@@ -206,17 +206,17 @@ async def reset_password(
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    Сброс пароля.
+    РЎР±СЂРѕСЃ РїР°СЂРѕР»СЏ.
     """
     auth_service = AuthService(session)
     
     try:
         await auth_service.reset_password(token, new_password)
-        return {"message": "Пароль успешно изменен"}
+        return {"message": "РџР°СЂРѕР»СЊ СѓСЃРїРµС€РЅРѕ РёР·РјРµРЅРµРЅ"}
     except InvalidCredentials:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Неверный или истекший токен"
+            detail="РќРµРІРµСЂРЅС‹Р№ РёР»Рё РёСЃС‚РµРєС€РёР№ С‚РѕРєРµРЅ"
         )
 
 
@@ -225,7 +225,7 @@ async def get_my_permissions(
     current_user: User = Depends(get_current_active_user)
 ):
     """
-    Получить права текущего пользователя.
+    РџРѕР»СѓС‡РёС‚СЊ РїСЂР°РІР° С‚РµРєСѓС‰РµРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ.
     """
     permissions = set()
     for role in current_user.roles:

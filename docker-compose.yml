@@ -1,4 +1,4 @@
-version: '3.8'
+﻿version: '3.8'
 
 services:
   # PostgreSQL база данных
@@ -45,66 +45,6 @@ services:
     environment:
       ADMINER_DEFAULT_SERVER: postgres
       ADMINER_DESIGN: pepa-linha-dark
-
-  # Backend API
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: vendhub_backend
-    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
-    volumes:
-      - ./src:/app/src
-      - ./static:/app/static
-      - ./logs:/app/logs
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql://vendhub_user:vendhub_password@postgres:5432/vendhub
-      - REDIS_URL=redis://redis:6379/0
-      - ENVIRONMENT=development
-      - DEBUG=True
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-
-  # Telegram Bot (отдельный контейнер)
-  bot:
-    build:
-      context: .
-      dockerfile: Dockerfile.bot
-    container_name: vendhub_bot
-    command: python -m src.bot.bot
-    volumes:
-      - ./src:/app/src
-      - ./logs:/app/logs
-    environment:
-      - DATABASE_URL=postgresql://vendhub_user:vendhub_password@postgres:5432/vendhub
-      - REDIS_URL=redis://redis:6379/0
-      - BOT_TOKEN=${BOT_TOKEN}
-      - USE_WEBHOOK=False
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      backend:
-        condition: service_started
-
-  # Nginx (для продакшена)
-  # nginx:
-  #   image: nginx:alpine
-  #   container_name: vendhub_nginx
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/nginx.conf
-  #     - ./static:/var/www/static
-  #   depends_on:
-  #     - backend
 
 volumes:
   postgres_data:

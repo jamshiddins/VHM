@@ -1,301 +1,237 @@
-# Переход в папку проекта
-Set-Location "D:\Projects\VHM 1.0"
-
-# Создание файла исключений
-$exceptionsContent = @'
-from typing import Any, Dict, Optional
-from fastapi import HTTPException
+from typing import Optional, Dict, Any
 
 
-class VendHubException(HTTPException):
-    """Базовое исключение VendHub"""
+class VendHubException(Exception):
+    """Базовое исключение для всех ошибок VendHub"""
     
     def __init__(
         self,
-        status_code: int,
-        error_code: str,
         message: str,
+        error_code: str = "VENDHUB_ERROR",
+        status_code: int = 400,
         details: Optional[Dict[str, Any]] = None
     ):
-        self.error_code = error_code
         self.message = message
+        self.error_code = error_code
+        self.status_code = status_code
         self.details = details or {}
-        super().__init__(status_code=status_code, detail=message)
+        super().__init__(self.message)
 
 
-# Authentication & Authorization
-class AuthenticationError(VendHubException):
-    """Ошибки аутентификации"""
-    
-    def __init__(self, message: str = "Не удалось аутентифицировать пользователя"):
-        super().__init__(
-            status_code=401,
-            error_code="AUTHENTICATION_ERROR",
-            message=message
-        )
+# === Исключения аутентификации ===
+
+class AuthException(VendHubException):
+    """Базовое исключение для ошибок аутентификации"""
+    status_code = 401
 
 
-class AuthorizationError(VendHubException):
-    """Ошибки авторизации"""
-    
-    def __init__(self, message: str = "Недостаточно прав для выполнения операции"):
-        super().__init__(
-            status_code=403,
-            error_code="AUTHORIZATION_ERROR",
-            message=message
-        )
+class InvalidCredentials(AuthException):
+    """Неверные учетные данные"""
+    error_code = "INVALID_CREDENTIALS"
 
 
-class InvalidTokenError(AuthenticationError):
-    """Недействительный токен"""
-    
-    def __init__(self, message: str = "Недействительный или истекший токен"):
-        super().__init__(message)
-        self.error_code = "INVALID_TOKEN"
+class TokenExpired(AuthException):
+    """Токен истек"""
+    error_code = "TOKEN_EXPIRED"
 
 
-class UserNotFoundError(VendHubException):
+class TokenInvalid(AuthException):
+    """Невалидный токен"""
+    error_code = "TOKEN_INVALID"
+
+
+# === Исключения пользователей ===
+
+class UserException(VendHubException):
+    """Базовое исключение для ошибок пользователей"""
+    pass
+
+
+class UserNotFound(UserException):
     """Пользователь не найден"""
-    
-    def __init__(self, message: str = "Пользователь не найден"):
-        super().__init__(
-            status_code=404,
-            error_code="USER_NOT_FOUND",
-            message=message
-        )
+    error_code = "USER_NOT_FOUND"
+    status_code = 404
 
 
-# Business Logic Errors
-class MachineNotFoundError(VendHubException):
-    """Автомат не найден"""
-    
-    def __init__(self, machine_code: str = None):
-        message = f"Автомат {machine_code} не найден" if machine_code else "Автомат не найден"
-        super().__init__(
-            status_code=404,
-            error_code="MACHINE_NOT_FOUND",
-            message=message
-        )
+class UserAlreadyExists(UserException):
+    """Пользователь уже существует"""
+    error_code = "USER_ALREADY_EXISTS"
+    status_code = 409
 
 
-class MachineInactiveError(VendHubException):
-    """Автомат неактивен"""
-    
-    def __init__(self, machine_code: str = None):
-        message = f"Автомат {machine_code} неактивен" if machine_code else "Автомат неактивен"
-        super().__init__(
-            status_code=400,
-            error_code="MACHINE_INACTIVE",
-            message=message
-        )
+class UserNotActive(UserException):
+    """Пользователь не активен"""
+    error_code = "USER_NOT_ACTIVE"
+    status_code = 403
 
 
-class InsufficientInventoryError(VendHubException):
-    """Недостаточно остатков"""
-    
-    def __init__(self, ingredient_name: str = None, required: float = None, available: float = None):
-        if ingredient_name and required and available:
-            message = f"Недостаточно {ingredient_name}: требуется {required}, доступно {available}"
-        else:
-            message = "Недостаточно остатков для выполнения операции"
-        
-        super().__init__(
-            status_code=400,
-            error_code="INSUFFICIENT_INVENTORY",
-            message=message,
-            details={
-                "ingredient": ingredient_name,
-                "required": required,
-                "available": available
-            }
-        )
+class UserNotVerified(UserException):
+    """Пользователь не верифицирован"""
+    error_code = "USER_NOT_VERIFIED"
+    status_code = 403
 
 
-class DuplicateCodeError(VendHubException):
-    """Дубликат кода"""
-    
-    def __init__(self, entity_type: str, code: str):
-        super().__init__(
-            status_code=400,
-            error_code="DUPLICATE_CODE",
-            message=f"{entity_type} с кодом {code} уже существует"
-        )
+# === Исключения доступа ===
+
+class PermissionException(VendHubException):
+    """Базовое исключение для ошибок доступа"""
+    status_code = 403
 
 
-# Validation Errors
-class ValidationError(VendHubException):
-    """Ошибка валидации"""
-    
-    def __init__(self, message: str, field: str = None):
-        super().__init__(
-            status_code=422,
-            error_code="VALIDATION_ERROR",
-            message=message,
-            details={"field": field} if field else {}
-        )
+class PermissionDenied(PermissionException):
+    """Доступ запрещен"""
+    error_code = "PERMISSION_DENIED"
 
 
-class InvalidDateRangeError(ValidationError):
-    """Неверный диапазон дат"""
-    
-    def __init__(self, message: str = "Дата начала должна быть меньше даты окончания"):
-        super().__init__(message)
-        self.error_code = "INVALID_DATE_RANGE"
+class RoleNotFound(PermissionException):
+    """Роль не найдена"""
+    error_code = "ROLE_NOT_FOUND"
+    status_code = 404
 
 
-class InvalidAmountError(ValidationError):
-    """Неверная сумма"""
-    
-    def __init__(self, message: str = "Сумма должна быть положительной"):
-        super().__init__(message)
-        self.error_code = "INVALID_AMOUNT"
+# === Исключения машин ===
+
+class MachineException(VendHubException):
+    """Базовое исключение для ошибок машин"""
+    pass
 
 
-# File & Upload Errors
-class FileUploadError(VendHubException):
-    """Ошибка загрузки файла"""
-    
-    def __init__(self, message: str = "Ошибка при загрузке файла"):
-        super().__init__(
-            status_code=400,
-            error_code="FILE_UPLOAD_ERROR",
-            message=message
-        )
+class MachineNotFound(MachineException):
+    """Машина не найдена"""
+    error_code = "MACHINE_NOT_FOUND"
+    status_code = 404
 
 
-class FileTooLargeError(FileUploadError):
-    """Файл слишком большой"""
-    
-    def __init__(self, max_size_mb: int):
-        super().__init__(f"Размер файла превышает {max_size_mb} МБ")
-        self.error_code = "FILE_TOO_LARGE"
+class MachineAlreadyExists(MachineException):
+    """Машина уже существует"""
+    error_code = "MACHINE_ALREADY_EXISTS"
+    status_code = 409
 
 
-class UnsupportedFileTypeError(FileUploadError):
-    """Неподдерживаемый тип файла"""
-    
-    def __init__(self, file_type: str, supported_types: list):
-        super().__init__(
-            f"Неподдерживаемый тип файла: {file_type}. "
-            f"Поддерживаемые типы: {', '.join(supported_types)}"
-        )
-        self.error_code = "UNSUPPORTED_FILE_TYPE"
+class MachineNotOperational(MachineException):
+    """Машина не работает"""
+    error_code = "MACHINE_NOT_OPERATIONAL"
 
 
-# Database Errors
-class DatabaseError(VendHubException):
-    """Ошибка базы данных"""
-    
-    def __init__(self, message: str = "Ошибка при работе с базой данных"):
-        super().__init__(
-            status_code=500,
-            error_code="DATABASE_ERROR",
-            message=message
-        )
+# === Исключения инвентаря ===
+
+class InventoryException(VendHubException):
+    """Базовое исключение для ошибок инвентаря"""
+    pass
 
 
-class RecordNotFoundError(VendHubException):
-    """Запись не найдена"""
-    
-    def __init__(self, entity_type: str = "Запись", entity_id: Any = None):
-        message = f"{entity_type} не найдена"
-        if entity_id:
-            message += f" (ID: {entity_id})"
-        
-        super().__init__(
-            status_code=404,
-            error_code="RECORD_NOT_FOUND",
-            message=message
-        )
+class InsufficientStock(InventoryException):
+    """Недостаточно товара на складе"""
+    error_code = "INSUFFICIENT_STOCK"
 
 
-class RecordAlreadyExistsError(VendHubException):
-    """Запись уже существует"""
-    
-    def __init__(self, entity_type: str = "Запись"):
-        super().__init__(
-            status_code=409,
-            error_code="RECORD_ALREADY_EXISTS",
-            message=f"{entity_type} уже существует"
-        )
+class IngredientNotFound(InventoryException):
+    """Ингредиент не найден"""
+    error_code = "INGREDIENT_NOT_FOUND"
+    status_code = 404
 
 
-# External Service Errors
-class ExternalServiceError(VendHubException):
+# === Исключения задач ===
+
+class TaskException(VendHubException):
+    """Базовое исключение для ошибок задач"""
+    pass
+
+
+class TaskNotFound(TaskException):
+    """Задача не найдена"""
+    error_code = "TASK_NOT_FOUND"
+    status_code = 404
+
+
+class TaskAlreadyCompleted(TaskException):
+    """Задача уже выполнена"""
+    error_code = "TASK_ALREADY_COMPLETED"
+
+
+class TaskNotAssigned(TaskException):
+    """Задача не назначена"""
+    error_code = "TASK_NOT_ASSIGNED"
+
+
+# === Исключения финансов ===
+
+class FinanceException(VendHubException):
+    """Базовое исключение для финансовых ошибок"""
+    pass
+
+
+class InsufficientFunds(FinanceException):
+    """Недостаточно средств"""
+    error_code = "INSUFFICIENT_FUNDS"
+
+
+class TransactionNotFound(FinanceException):
+    """Транзакция не найдена"""
+    error_code = "TRANSACTION_NOT_FOUND"
+    status_code = 404
+
+
+class InvalidTransactionType(FinanceException):
+    """Неверный тип транзакции"""
+    error_code = "INVALID_TRANSACTION_TYPE"
+
+
+# === Исключения инвестиций ===
+
+class InvestmentException(VendHubException):
+    """Базовое исключение для ошибок инвестиций"""
+    pass
+
+
+class InvestmentNotFound(InvestmentException):
+    """Инвестиция не найдена"""
+    error_code = "INVESTMENT_NOT_FOUND"
+    status_code = 404
+
+
+class InvestmentAlreadyExists(InvestmentException):
+    """Инвестиция уже существует"""
+    error_code = "INVESTMENT_ALREADY_EXISTS"
+    status_code = 409
+
+
+class InvalidSharePercentage(InvestmentException):
+    """Неверный процент доли"""
+    error_code = "INVALID_SHARE_PERCENTAGE"
+
+
+# === Исключения валидации ===
+
+class ValidationException(VendHubException):
+    """Базовое исключение для ошибок валидации"""
+    pass
+
+
+class InvalidInput(ValidationException):
+    """Неверные входные данные"""
+    error_code = "INVALID_INPUT"
+
+
+class MissingRequiredField(ValidationException):
+    """Отсутствует обязательное поле"""
+    error_code = "MISSING_REQUIRED_FIELD"
+
+
+# === Исключения интеграций ===
+
+class IntegrationException(VendHubException):
+    """Базовое исключение для ошибок интеграций"""
+    pass
+
+
+class ExternalServiceError(IntegrationException):
     """Ошибка внешнего сервиса"""
-    
-    def __init__(self, service_name: str, message: str = None):
-        default_message = f"Ошибка при обращении к сервису {service_name}"
-        super().__init__(
-            status_code=502,
-            error_code="EXTERNAL_SERVICE_ERROR",
-            message=message or default_message
-        )
+    error_code = "EXTERNAL_SERVICE_ERROR"
+    status_code = 502
 
 
-class PaymentServiceError(ExternalServiceError):
-    """Ошибка платежного сервиса"""
-    
-    def __init__(self, service_name: str, message: str = None):
-        super().__init__(service_name, message)
-        self.error_code = "PAYMENT_SERVICE_ERROR"
-
-
-class FiscalServiceError(ExternalServiceError):
-    """Ошибка фискального сервиса"""
-    
-    def __init__(self, message: str = "Ошибка фискализации"):
-        super().__init__("Fiscal Service", message)
-        self.error_code = "FISCAL_SERVICE_ERROR"
-
-
-# Configuration Errors
-class ConfigurationError(VendHubException):
-    """Ошибка конфигурации"""
-    
-    def __init__(self, message: str = "Ошибка конфигурации приложения"):
-        super().__init__(
-            status_code=500,
-            error_code="CONFIGURATION_ERROR",
-            message=message
-        )
-
-
-class MissingEnvironmentVariableError(ConfigurationError):
-    """Отсутствует переменная окружения"""
-    
-    def __init__(self, var_name: str):
-        super().__init__(f"Отсутствует переменная окружения: {var_name}")
-        self.error_code = "MISSING_ENV_VAR"
-
-
-# Rate Limiting
-class RateLimitExceededError(VendHubException):
-    """Превышен лимит запросов"""
-    
-    def __init__(self, message: str = "Превышен лимит запросов"):
-        super().__init__(
-            status_code=429,
-            error_code="RATE_LIMIT_EXCEEDED",
-            message=message
-        )
-
-
-# Maintenance
-class MaintenanceModeError(VendHubException):
-    """Режим технического обслуживания"""
-    
-    def __init__(self, message: str = "Система находится в режиме технического обслуживания"):
-        super().__init__(
-            status_code=503,
-            error_code="MAINTENANCE_MODE",
-            message=message
-        )
-'@
-
-# Запись в файл
-$exceptionsContent | Out-File -FilePath "src\core\exceptions.py" -Encoding UTF8
-
-Write-Host "✅ Файл src\core\exceptions.py создан!" -ForegroundColor Green
-Write-Host "📄 Содержит все кастомные исключения для VendHub" -ForegroundColor Yellow
-Write-Host "📄 Размер файла: $((Get-Item "src\core\exceptions.py").Length) байт" -ForegroundColor Cyan
+class PaymentGatewayError(IntegrationException):
+    """Ошибка платежного шлюза"""
+    error_code = "PAYMENT_GATEWAY_ERROR"
+    status_code = 502
