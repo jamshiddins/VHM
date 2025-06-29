@@ -48,19 +48,14 @@ argon2-cffi==23.1.0
 # ===== UTILITIES =====
 # Логирование
 loguru==0.7.2
-
 # Планировщик задач
 apscheduler==3.10.4
-
 # Работа с изображениями
 pillow==10.1.0
-
 # QR коды
 qrcode[pil]==7.4.2
-
 # Форматирование
 tabulate==0.9.0
-
 # Генерация уникальных ID
 shortuuid==1.0.11
 
@@ -68,7 +63,7 @@ shortuuid==1.0.11
 pytest==7.4.3
 pytest-asyncio==0.21.1
 pytest-cov==4.1.0
-# httpx-mock==0.25.2  # Временно отключено
+httpx-mock==0.25.2
 faker==20.1.0
 black==23.11.0
 isort==5.13.0
@@ -76,8 +71,13 @@ flake8==6.1.0
 mypy==1.7.1
 
 # ===== API DOCUMENTATION =====
+# Автоматическая документация API
 mkdocs==1.5.3
 mkdocs-material==9.4.14
+
+# ===== MONITORING (опционально) =====
+# prometheus-client==0.19.0
+# sentry-sdk==1.38.0
 
 # ===== PRODUCTION SERVER =====
 gunicorn==21.2.0
@@ -86,4 +86,3 @@ supervisor==4.2.5
 # ===== МИГРАЦИИ И ДЕПЛОЙ =====
 fabric==3.2.2
 invoke==2.2.0
-

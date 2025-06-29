@@ -23,15 +23,15 @@ async def register(
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    Р РµРіРёСЃС‚СЂР°С†РёСЏ РЅРѕРІРѕРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ.
+    Регистрация нового пользователя.
     
-    - **telegram_id**: ID РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РІ Telegram
-    - **phone**: РќРѕРјРµСЂ С‚РµР»РµС„РѕРЅР° (СЃ +998)
-    - **email**: Email Р°РґСЂРµСЃ
-    - **username**: РЈРЅРёРєР°Р»СЊРЅРѕРµ РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
-    - **full_name**: РџРѕР»РЅРѕРµ РёРјСЏ
-    - **password**: РџР°СЂРѕР»СЊ (РјРёРЅ. 8 СЃРёРјРІРѕР»РѕРІ)
-    - **role_names**: РЎРїРёСЃРѕРє СЂРѕР»РµР№
+    - **telegram_id**: ID пользователя в Telegram
+    - **phone**: Номер телефона (с +998)
+    - **email**: Email адрес
+    - **username**: Уникальное имя пользователя
+    - **full_name**: Полное имя
+    - **password**: Пароль (мин. 8 символов)
+    - **role_names**: Список ролей
     """
     auth_service = AuthService(session)
     
@@ -51,12 +51,12 @@ async def login(
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    Р’С…РѕРґ РІ СЃРёСЃС‚РµРјСѓ (OAuth2 СЃРѕРІРјРµСЃС‚РёРјС‹Р№).
+    Вход в систему (OAuth2 совместимый).
     
-    Username РјРѕР¶РµС‚ Р±С‹С‚СЊ:
-    - РРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+    Username может быть:
+    - Имя пользователя
     - Email
-    - РќРѕРјРµСЂ С‚РµР»РµС„РѕРЅР°
+    - Номер телефона
     """
     auth_service = AuthService(session)
     
@@ -69,7 +69,7 @@ async def login(
     except InvalidCredentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="РќРµРІРµСЂРЅС‹Рµ СѓС‡РµС‚РЅС‹Рµ РґР°РЅРЅС‹Рµ",
+            detail="Неверные учетные данные",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -80,7 +80,7 @@ async def login_custom(
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    Р’С…РѕРґ РІ СЃРёСЃС‚РµРјСѓ (РєР°СЃС‚РѕРјРЅС‹Р№ endpoint).
+    Вход в систему (кастомный endpoint).
     """
     auth_service = AuthService(session)
     
@@ -93,7 +93,7 @@ async def login_custom(
     except InvalidCredentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="РќРµРІРµСЂРЅС‹Рµ СѓС‡РµС‚РЅС‹Рµ РґР°РЅРЅС‹Рµ"
+            detail="Неверные учетные данные"
         )
 
 
@@ -103,7 +103,7 @@ async def telegram_auth(
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    РђРІС‚РѕСЂРёР·Р°С†РёСЏ С‡РµСЂРµР· Telegram.
+    Авторизация через Telegram.
     """
     auth_service = AuthService(session)
     
@@ -113,7 +113,7 @@ async def telegram_auth(
     except InvalidCredentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="РќРµРІРµСЂРЅС‹Рµ РґР°РЅРЅС‹Рµ Telegram"
+            detail="Неверные данные Telegram"
         )
 
 
@@ -123,7 +123,7 @@ async def refresh_token(
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    РћР±РЅРѕРІР»РµРЅРёРµ С‚РѕРєРµРЅРѕРІ.
+    Обновление токенов.
     """
     auth_service = AuthService(session)
     
@@ -133,7 +133,7 @@ async def refresh_token(
     except InvalidCredentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="РќРµРІР°Р»РёРґРЅС‹Р№ refresh token"
+            detail="Невалидный refresh token"
         )
 
 
@@ -142,7 +142,7 @@ async def get_me(
     current_user: User = Depends(get_current_active_user)
 ):
     """
-    РџРѕР»СѓС‡РёС‚СЊ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ С‚РµРєСѓС‰РµРј РїРѕР»СЊР·РѕРІР°С‚РµР»Рµ.
+    Получить информацию о текущем пользователе.
     """
     return current_user
 
@@ -153,12 +153,12 @@ async def logout(
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    Р’С‹С…РѕРґ РёР· СЃРёСЃС‚РµРјС‹.
+    Выход из системы.
     """
     auth_service = AuthService(session)
     await auth_service.logout_user(current_user.id)
     
-    return {"message": "РЈСЃРїРµС€РЅС‹Р№ РІС‹С…РѕРґ"}
+    return {"message": "Успешный выход"}
 
 
 @router.post("/verify-email")
@@ -167,17 +167,17 @@ async def verify_email(
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    РџРѕРґС‚РІРµСЂР¶РґРµРЅРёРµ email.
+    Подтверждение email.
     """
     auth_service = AuthService(session)
     
     try:
         await auth_service.verify_email(token)
-        return {"message": "Email СѓСЃРїРµС€РЅРѕ РїРѕРґС‚РІРµСЂР¶РґРµРЅ"}
+        return {"message": "Email успешно подтвержден"}
     except InvalidCredentials:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="РќРµРІРµСЂРЅС‹Р№ РёР»Рё РёСЃС‚РµРєС€РёР№ С‚РѕРєРµРЅ"
+            detail="Неверный или истекший токен"
         )
 
 
@@ -187,16 +187,16 @@ async def reset_password_request(
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    Р—Р°РїСЂРѕСЃ РЅР° СЃР±СЂРѕСЃ РїР°СЂРѕР»СЏ.
+    Запрос на сброс пароля.
     """
     auth_service = AuthService(session)
     
     try:
         await auth_service.request_password_reset(email)
-        return {"message": "РРЅСЃС‚СЂСѓРєС†РёРё РѕС‚РїСЂР°РІР»РµРЅС‹ РЅР° email"}
+        return {"message": "Инструкции отправлены на email"}
     except UserNotFound:
-        # РќРµ СЂР°СЃРєСЂС‹РІР°РµРј РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ СЃСѓС‰РµСЃС‚РІРѕРІР°РЅРёРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
-        return {"message": "РРЅСЃС‚СЂСѓРєС†РёРё РѕС‚РїСЂР°РІР»РµРЅС‹ РЅР° email"}
+        # Не раскрываем информацию о существовании пользователя
+        return {"message": "Инструкции отправлены на email"}
 
 
 @router.post("/reset-password")
@@ -206,17 +206,17 @@ async def reset_password(
     session: AsyncSession = Depends(get_async_session)
 ):
     """
-    РЎР±СЂРѕСЃ РїР°СЂРѕР»СЏ.
+    Сброс пароля.
     """
     auth_service = AuthService(session)
     
     try:
         await auth_service.reset_password(token, new_password)
-        return {"message": "РџР°СЂРѕР»СЊ СѓСЃРїРµС€РЅРѕ РёР·РјРµРЅРµРЅ"}
+        return {"message": "Пароль успешно изменен"}
     except InvalidCredentials:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="РќРµРІРµСЂРЅС‹Р№ РёР»Рё РёСЃС‚РµРєС€РёР№ С‚РѕРєРµРЅ"
+            detail="Неверный или истекший токен"
         )
 
 
@@ -225,7 +225,7 @@ async def get_my_permissions(
     current_user: User = Depends(get_current_active_user)
 ):
     """
-    РџРѕР»СѓС‡РёС‚СЊ РїСЂР°РІР° С‚РµРєСѓС‰РµРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ.
+    Получить права текущего пользователя.
     """
     permissions = set()
     for role in current_user.roles:

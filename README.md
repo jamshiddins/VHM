@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# VHM
-=======
 # 🏪 VendHub - Система управления вендинговой сетью
 
 ![Python](https://img.shields.io/badge/python-3.11-blue)
@@ -250,4 +247,3 @@ pytest tests/test_api/
 ---
 
 <p align="center">Сделано с ❤️ для вендингового бизнеса</p>
->>>>>>> ee0500e (Initial VendHub setup)

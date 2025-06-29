@@ -1,8 +1,8 @@
-﻿from typing import Optional
+﻿from typing import Optional, List
 from datetime import date, datetime
 from sqlalchemy import (
     Column, String, ForeignKey, Date, Numeric, 
-    Integer, Text, Enum as SQLEnum, Index
+    Integer, Text, Enum as SQLEnum, Index, Boolean, JSON
 )
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from src.db.base import Base, TimestampMixin
@@ -10,7 +10,7 @@ import enum
 
 
 class IngredientCategory(str, enum.Enum):
-    """РљР°С‚РµРіРѕСЂРёРё РёРЅРіСЂРµРґРёРµРЅС‚РѕРІ"""
+    """Категории ингредиентов"""
     COFFEE = "coffee"
     MILK = "milk"
     SYRUP = "syrup"
@@ -24,7 +24,7 @@ class IngredientCategory(str, enum.Enum):
 
 
 class IngredientUnit(str, enum.Enum):
-    """Р•РґРёРЅРёС†С‹ РёР·РјРµСЂРµРЅРёСЏ"""
+    """Единицы измерения"""
     KG = "kg"
     L = "l"
     PCS = "pcs"
@@ -32,7 +32,7 @@ class IngredientUnit(str, enum.Enum):
 
 
 class LocationType(str, enum.Enum):
-    """РўРёРїС‹ Р»РѕРєР°С†РёР№ РґР»СЏ РѕСЃС‚Р°С‚РєРѕРІ"""
+    """Типы локаций для остатков"""
     WAREHOUSE = "warehouse"
     MACHINE = "machine"
     BAG = "bag"
@@ -40,7 +40,7 @@ class LocationType(str, enum.Enum):
 
 
 class Ingredient(Base):
-    """РњРѕРґРµР»СЊ РёРЅРіСЂРµРґРёРµРЅС‚Р°"""
+    """Модель ингредиента"""
     __tablename__ = "ingredients"
 
     code: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
@@ -55,7 +55,7 @@ class Ingredient(Base):
     barcode: Mapped[Optional[str]] = mapped_column(String(100))
     supplier_info: Mapped[dict] = mapped_column(JSON, default=dict)
     
-    # РћС‚РЅРѕС€РµРЅРёСЏ
+    # Отношения
     inventory_records: Mapped[List["Inventory"]] = relationship(
         "Inventory",
         back_populates="ingredient"
@@ -71,7 +71,7 @@ class Ingredient(Base):
 
 
 class Warehouse(Base):
-    """РњРѕРґРµР»СЊ СЃРєР»Р°РґР°"""
+    """Модель склада"""
     __tablename__ = "warehouses"
 
     code: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
@@ -79,7 +79,7 @@ class Warehouse(Base):
     address: Mapped[Optional[str]] = mapped_column(String)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     
-    # РћС‚РЅРѕС€РµРЅРёСЏ
+    # Отношения
     inventory: Mapped[List["Inventory"]] = relationship(
         "Inventory",
         primaryjoin="and_(Warehouse.id==Inventory.location_id, Inventory.location_type=='warehouse')",
@@ -91,7 +91,7 @@ class Warehouse(Base):
 
 
 class Inventory(Base, TimestampMixin):
-    """РњРѕРґРµР»СЊ РѕСЃС‚Р°С‚РєРѕРІ"""
+    """Модель остатков"""
     __tablename__ = "inventory"
 
     ingredient_id: Mapped[int] = mapped_column(
@@ -112,7 +112,7 @@ class Inventory(Base, TimestampMixin):
     )
     notes: Mapped[Optional[str]] = mapped_column(Text)
     
-    # РћС‚РЅРѕС€РµРЅРёСЏ
+    # Отношения
     ingredient: Mapped["Ingredient"] = relationship(
         "Ingredient",
         back_populates="inventory_records"
@@ -134,13 +134,13 @@ class Inventory(Base, TimestampMixin):
 
     @property
     def location_name(self) -> str:
-        """РќР°Р·РІР°РЅРёРµ Р»РѕРєР°С†РёРё"""
+        """Название локации"""
         if self.location_type == LocationType.WAREHOUSE:
-            # Р—РґРµСЃСЊ РЅСѓР¶РЅРѕ Р±СѓРґРµС‚ РїРѕР»СѓС‡РёС‚СЊ РЅР°Р·РІР°РЅРёРµ СЃРєР»Р°РґР°
-            return f"РЎРєР»Р°Рґ #{self.location_id}"
+            # Здесь нужно будет получить название склада
+            return f"Склад #{self.location_id}"
         elif self.location_type == LocationType.MACHINE:
-            # Р—РґРµСЃСЊ РЅСѓР¶РЅРѕ Р±СѓРґРµС‚ РїРѕР»СѓС‡РёС‚СЊ РєРѕРґ Р°РІС‚РѕРјР°С‚Р°
-            return f"РђРІС‚РѕРјР°С‚ #{self.location_id}"
+            # Здесь нужно будет получить код автомата
+            return f"Автомат #{self.location_id}"
         elif self.location_type == LocationType.BAG:
-            return f"РЎСѓРјРєР° Р·Р°РґР°С‡Рё #{self.location_id}"
+            return f"Сумка задачи #{self.location_id}"
         return f"{self.location_type} #{self.location_id}"

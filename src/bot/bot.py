@@ -1,4 +1,4 @@
-import asyncio
+﻿import asyncio
 import logging
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
@@ -29,14 +29,14 @@ def get_storage():
 async def setup_bot_commands(bot: Bot):
     """Установка команд бота"""
     commands = [
-        ("start", "🚀 Начать работу"),
-        ("menu", "📱 Главное меню"),
-        ("help", "❓ Помощь"),
-        ("profile", "👤 Мой профиль"),
-        ("tasks", "📋 Мои задачи"),
-        ("stats", "📊 Статистика"),
-        ("settings", "⚙️ Настройки"),
-        ("cancel", "❌ Отмена")
+        ("start", " Начать работу"),
+        ("menu", " Главное меню"),
+        ("help", " Помощь"),
+        ("profile", " Мой профиль"),
+        ("tasks", " Мои задачи"),
+        ("stats", " Статистика"),
+        ("settings", " Настройки"),
+        ("cancel", " Отмена")
     ]
     
     await bot.set_my_commands(commands)
@@ -63,7 +63,7 @@ async def on_startup(bot: Bot):
         try:
             await bot.send_message(
                 admin_id,
-                f"✅ {settings.APP_NAME} Bot запущен!\n"
+                f" {settings.APP_NAME} Bot запущен!\n"
                 f"Версия: {settings.APP_VERSION}\n"
                 f"Режим: {settings.ENVIRONMENT}"
             )
@@ -81,7 +81,7 @@ async def on_shutdown(bot: Bot):
     # Уведомление админов
     for admin_id in settings.BOT_ADMIN_IDS:
         try:
-            await bot.send_message(admin_id, "⚠️ Bot остановлен")
+            await bot.send_message(admin_id, " Bot остановлен")
         except:
             pass
 
