@@ -1,6 +1,4 @@
-version: '3.8'
-
-services:
+﻿services:
   # PostgreSQL база данных
   postgres:
     image: postgres:16-alpine
@@ -92,19 +90,6 @@ services:
         condition: service_healthy
       backend:
         condition: service_started
-
-  # Nginx (для продакшена)
-  # nginx:
-  #   image: nginx:alpine
-  #   container_name: vendhub_nginx
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/nginx.conf
-  #     - ./static:/var/www/static
-  #   depends_on:
-  #     - backend
 
 volumes:
   postgres_data:
