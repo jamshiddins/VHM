@@ -1,3 +1,4 @@
+﻿# Dockerfile.bot
 FROM python:3.11-slim
 
 # Установка системных зависимостей
@@ -17,7 +18,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Копирование кода
-COPY --chown=vendhub:vendhub . .
+COPY --chown=vendhub:vendhub src ./src
 
 # Создание директории для логов
 RUN mkdir -p /app/logs && chown -R vendhub:vendhub /app

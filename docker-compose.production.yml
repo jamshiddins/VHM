@@ -1,0 +1,56 @@
+﻿version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vendhub_backend_prod
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./src:/app/src:ro
+      - C:\VendHub\static:/app/static
+      - C:\VendHub\logs:/app/logs
+    ports:
+      - "8000:8000"
+    networks:
+      - vendhub_network
+    command: gunicorn src.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
+    container_name: vendhub_bot_prod
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./src:/app/src:ro
+      - C:\VendHub\logs:/app/logs
+    depends_on:
+      - backend
+    networks:
+      - vendhub_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: vendhub_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - C:\VendHub\static:/var/www/static:ro
+      - C:\win-acme\certificates:/etc/letsencrypt:ro
+    depends_on:
+      - backend
+    networks:
+      - vendhub_network
+
+networks:
+  vendhub_network:
+    driver: bridge
