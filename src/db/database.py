@@ -39,7 +39,7 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
 async def init_db():
     """Инициализация БД (создание таблиц)"""
     from src.db.base import Base
-    from src.db.models import *  # noqa: F401, F403
+    from src.db.models import Model1, Model2, Model3  # Replace with actual model names
     
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
